@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status as http_status
 from sqlalchemy.orm import Session
 
 
@@ -11,21 +11,20 @@ app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
 
 
-@app.get("/")
+@app.get("/", status_code=http_status.HTTP_200_OK)
 async def read_all(db: Session = Depends(get_db)):
     return db.query(models.TodosModel).all()
 
 
-@app.get("/todo/{todo_id}")
+@app.get("/todo/{todo_id}", status_code=http_status.HTTP_200_OK)
 async def read_todo(todo_id: int, db: Session = Depends(get_db)):
     todo_model = db.query(models.TodosModel).filter(models.TodosModel.id == todo_id).first()
     if todo_model is None:
         raise HTTPException(status_code=404, detail="Todo not found")
-
     return todo_model.serializer()
 
 
-@app.post("/")
+@app.post("/", status_code=http_status.HTTP_201_CREATED)
 async def create_todo(todo: CreateTodo, db: Session = Depends(get_db)):
     todo = todo.__dict__
     todo = models.TodosModel(**todo)
@@ -34,7 +33,7 @@ async def create_todo(todo: CreateTodo, db: Session = Depends(get_db)):
     return todo.serializer()
 
 
-@app.put("/todo/{todo_id}")
+@app.put("/todo/{todo_id}", status_code=http_status.HTTP_200_OK)
 async def update_todo(todo_id: int, todo: CreateTodo, db: Session = Depends(get_db)):
     todo_model = db.query(models.TodosModel).filter(models.TodosModel.id == todo_id).first()
     if todo_model is None:
@@ -50,7 +49,7 @@ async def update_todo(todo_id: int, todo: CreateTodo, db: Session = Depends(get_
     return todo_model.serializer()
 
 
-@app.delete("/todo/{todo_id}")
+@app.delete("/todo/{todo_id}", status_code=http_status.HTTP_200_OK)
 async def read_todo(todo_id: int, db: Session = Depends(get_db)):
     todo_model = db.query(models.TodosModel).filter(models.TodosModel.id == todo_id).first()
     if todo_model is None:
