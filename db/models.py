@@ -28,7 +28,8 @@ class TodosModel(Base):
             "title": self.title,
             "description": self.description,
             "priority": self.priority,
-            "complete": self.complete
+            "complete": self.complete,
+            "owner_id": self.owner_id
         }
 
 
