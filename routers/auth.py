@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import Depends, HTTPException, APIRouter
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
@@ -17,9 +17,13 @@ oauth_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
-
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth"],
+    responses={401: {"user": "Not authorized"}}
+)
 
 
 def get_password_hash(password):
@@ -61,7 +65,7 @@ async def get_current_user(token: str = Depends(oauth_bearer)):
         raise HTTPException(status_code=404, detail="User not found")
 
 
-@app.post("/create/user")
+@router.post("/create/user")
 async def create_user(user: CreateUser, db: Session = Depends(get_db)):
     user = user.__dict__
     user_model = models.UsersModel(**user)
@@ -72,7 +76,7 @@ async def create_user(user: CreateUser, db: Session = Depends(get_db)):
     return user_model.serializer()
 
 
-@app.post("/token")
+@router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
