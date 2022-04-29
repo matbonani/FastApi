@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
 
 from db import models
-from db.database import engine, SessionLocal, get_db
+from db.database import engine, get_db
 from routers.auth import get_current_user, verify_password, get_password_hash
+from schemas.users import UserVerification, CreateUser
 
 router = APIRouter(
     prefix="/user",
@@ -15,10 +15,15 @@ router = APIRouter(
 models.Base.metadata.create_all(bind=engine)
 
 
-class UserVerification(BaseModel):
-    username: str
-    password: str
-    new_password: str
+@router.post("/create/user")
+async def create_user(user: CreateUser, db: Session = Depends(get_db)):
+    user = user.__dict__
+    user_model = models.UsersModel(**user)
+    user_model.password = get_password_hash(user["password"])
+
+    db.add(user_model)
+    db.commit()
+    return user_model.serializer()
 
 
 @router.get("/")

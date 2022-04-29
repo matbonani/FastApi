@@ -65,17 +65,6 @@ async def get_current_user(token: str = Depends(oauth_bearer)):
         raise HTTPException(status_code=404, detail="User not found")
 
 
-@router.post("/create/user")
-async def create_user(user: CreateUser, db: Session = Depends(get_db)):
-    user = user.__dict__
-    user_model = models.UsersModel(**user)
-    user_model.password = get_password_hash(user["password"])
-
-    db.add(user_model)
-    db.commit()
-    return user_model.serializer()
-
-
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(form_data.username, form_data.password, db)
