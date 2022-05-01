@@ -1,6 +1,7 @@
-from fastapi import Depends, HTTPException, status as http_status, APIRouter
+from fastapi import Depends, HTTPException, status as http_status, APIRouter, Request
 from sqlalchemy.orm import Session
-
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from db import models
 from db.database import engine, get_db
@@ -11,6 +12,13 @@ from routers.auth import get_current_user
 router = APIRouter(prefix="/todos", tags=["todos"], responses={404: {"description": "Not found"}})
 
 models.Base.metadata.create_all(bind=engine)
+
+templates = Jinja2Templates(directory="templates")
+
+
+@router.get("/test")
+async def test(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 
 @router.get("/", status_code=http_status.HTTP_200_OK)
