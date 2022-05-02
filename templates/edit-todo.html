@@ -1,23 +1,26 @@
 {% include 'layout.html' %}
 
+
 <div class="container">
     <div class="card">
         <div class="card-header">
-            Let's edit your todo!
+             Let's edit your todo!
         </div>
         <div class="card-body">
             <form method="POST">
                 <div class="form-group">
                     <label>Title</label>
-                    <input type="text" class="form-control" name="title" value="{{todo.title}}" required>
+                    <input type="text" class="form-control" name="title" value="{{todo.title}}" 
+                           required>
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea name="description" class="form-control" rows="3" required>{{todo.description}}</textarea>
+                    <textarea class="form-control"rows="3" name="description"
+                              required>{{todo.description}}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Priority</label>
-                    <select name="priority" class="form-control">
+                    <select class="form-control" name="priority">
                         <option {% if todo.priority == 1%} selected="selected" {% endif %}>1</option>
                         <option {% if todo.priority == 2%} selected="selected" {% endif %}>2</option>
                         <option {% if todo.priority == 3%} selected="selected" {% endif %}>3</option>
@@ -25,10 +28,12 @@
                         <option {% if todo.priority == 5%} selected="selected" {% endif %}>5</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary">Edit your todo</button>
-                <button onclick="window.location.href='/todos/delete/{{todo.id}}'"
-                        type="button" class="btn btn-danger">Delete</button>
+                <button type="submit" class="btn btn-primary">edit</button>
+                <a href="/todos/delete/{{todo.id}}" class="btn btn-primary">delete</a>
             </form>
         </div>
     </div>
 </div>
+
+
+
