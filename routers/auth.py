@@ -71,13 +71,16 @@ def create_acces_token(username: str, user_id: int, expires_delta: Optional[time
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-async def get_current_user(token: str = Depends(oauth_bearer)):
+async def get_current_user(request: Request):
     try:
+        token = request.cookies.get("access_token")
+        if token is None:
+            return None
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         user_id: int = payload.get("id")
-        if username and user_id is None:
-            raise HTTPException(status_code=404, detail="User not found")
+        if username is None or user_id is None:
+            return None
         return {"username": username, "id": user_id}
     except JWTError:
         raise HTTPException(status_code=404, detail="User not found")
@@ -90,7 +93,7 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
         return False
     token_expire = timedelta(minutes=60)
     token = create_acces_token(user.username, user.id, expires_delta=token_expire)
-    response.set_cookie(key="acces_token", value=token, httponly=True)
+    response.set_cookie(key="access_token", value=token, httponly=True)
     return True
 
 
@@ -105,7 +108,6 @@ async def login(request: Request, db: Session = Depends(get_db)):
         form = LoginForm(request)
         await form.create_oath_form()
         response = RedirectResponse(url="/todos", status_code=status.HTTP_302_FOUND)
-
         validate_user_cookie = await login_for_access_token(response=response, form_data=form, db=db)
 
         if not validate_user_cookie:
