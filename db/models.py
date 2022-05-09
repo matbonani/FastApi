@@ -46,19 +46,3 @@ class UsersModel(Base):
 
     todos = relationship("TodosModel", back_populates="owner")
 
-    def __init__(self, email: str, username: str, first_name: str, last_name: str, password: str):
-        self.email = email
-        self.username = username
-        self.first_name = first_name
-        self.last_name = last_name
-        self.password = password
-
-    def serializer(self):
-        return {
-            "id": self.id,
-            "email": self.email,
-            "username": self.username,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "is_active": self.is_active
-        }

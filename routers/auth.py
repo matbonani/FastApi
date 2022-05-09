@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import Depends, HTTPException, APIRouter, Request, Response
+from fastapi import Depends, HTTPException, APIRouter, Request, Response, Form
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
@@ -119,6 +119,43 @@ async def login(request: Request, db: Session = Depends(get_db)):
         return templates.TemplateResponse("login.html", {"request": request, "msg": msg})
 
 
+@router.get("/logout")
+async def logout(request: Request):
+    msg = "Logout Successful"
+    response = templates.TemplateResponse("login.html", {"request": request, "msg": msg})
+    response.delete_cookie(key="access_token")
+    return response
+
+
 @router.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
+
+
+@router.post("/register", response_class=HTMLResponse)
+async def register_user(request: Request, email: str = Form(...), username: str = Form(...),
+                        firstname: str = Form(...), lastname: str = Form(...),
+                        password: str = Form(...), password2: str = Form(...),
+                        db: Session = Depends(get_db)):
+    validation1 = db.query(models.UsersModel).filter(models.UsersModel.username == username).first()
+    validation2 = db.query(models.UsersModel).filter(models.UsersModel.email == email).first()
+
+    if password != password2 or validation1 is not None or validation2 is not None:
+        msg = "Invalid registration request"
+        return templates.TemplateResponse("register.html", {"request": request, "msg": msg})
+
+    user_model = models.UsersModel
+    user_model.username = username
+    user_model.email = email
+    user_model.first_name = firstname
+    user_model.last_name = lastname
+
+    hash_password = get_password_hash(password)
+    user_model.password = hash_password
+    user_model.is_active = True
+
+    db.add(user_model)
+    db.commit()
+
+    msg = "User successfully created"
+    return templates.TemplateResponse("login.html", {"request": request, "msg": msg})
