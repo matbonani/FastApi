@@ -28,6 +28,17 @@ async def read_all_by_user(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("home.html", {"request": request, "todos": todos, "user": user})
 
 
+@router.get("/detail/{todo_id}", response_class=HTMLResponse)
+async def read_detail_by_user(request: Request, todo_id: int, db: Session = Depends(get_db)):
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth", status_code=status.HTTP_302_FOUND)
+
+    todo = db.query(models.TodosModel).filter(models.TodosModel.owner_id == user.get("id"))\
+        .filter(models.TodosModel.id == todo_id).first()
+    return templates.TemplateResponse("detail.html", {"request": request, "todo": todo, "user": user})
+
+
 @router.get("/add-todo", response_class=HTMLResponse)
 async def add_new_todo(request: Request):
     user = await get_current_user(request)

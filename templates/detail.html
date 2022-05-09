@@ -1,0 +1,21 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+             <h4>{{todo.title}}</h4>
+        </div>
+        <div class="card-body">
+                <div class="form-group">
+                    <h5 class="card-title">Description: </h5>
+                        <p>{{todo.description}}</p>
+                </div>
+                <hr>
+                <div class="form-group">
+                    <h5 class="card-title">Priority</h5>
+                    <p>{{todo.priority}}</p>
+                    </select>
+                </div>
+        </div>
+    </div>
+</div>
