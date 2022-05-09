@@ -12,7 +12,7 @@ from starlette import status
 
 from db.database import get_db, engine
 from db import models
-from schemas.users import CreateUser
+from schemas.users import UserVerification
 
 SECRET_KEY = "KlgH6AzYDeZeGwD288to79I3vTHT8wp7"
 ALGORITHM = "HS256"
@@ -80,7 +80,7 @@ async def get_current_user(request: Request):
         username: str = payload.get("sub")
         user_id: int = payload.get("id")
         if username is None or user_id is None:
-            return None
+            logout(request)
         return {"username": username, "id": user_id}
     except JWTError:
         raise HTTPException(status_code=404, detail="User not found")
@@ -159,3 +159,32 @@ async def register_user(request: Request, email: str = Form(...), username: str 
 
     msg = "User successfully created"
     return templates.TemplateResponse("login.html", {"request": request, "msg": msg})
+
+
+@router.get("/edit-password", response_class=HTMLResponse)
+async def edit_user_view(request: Request):
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth", status_code=status.HTTP_302_FOUND)
+
+    return templates.TemplateResponse("edit-password.html", {"request": request, "user": user})
+
+
+@router.post("/edit-password", response_class=HTMLResponse)
+async def user_password_chenger(request: Request, username: str = Form(...),
+                                password: str = Form(...), password2: str = Form(...),
+                                db: Session = Depends(get_db)):
+
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth", status_code=status.HTTP_302_FOUND)
+
+    user_data = db.query(models.UsersModel).filter(models.UsersModel.username == username).first()
+    msg = "Invalid username or password"
+    if user_data is not None:
+        if username == user_data.username and verify_password(password, user_data.hashed_password):
+            user_data.hashed_password = get_password_hash(password2)
+            db.add(user_data)
+            msg = "Passoword updated"
+    return templates.TemplateResponse("edit-password.html", {"request": request,
+                                                             "user": user, "msg": msg})
