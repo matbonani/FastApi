@@ -21,7 +21,7 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_class=HTMLResponse)
 async def read_all_by_user(request: Request, db: Session = Depends(get_db)):
-    todos = db.query(models.TodosModel).all()
+    todos = db.query(models.TodosModel).filter(models.TodosModel.owner_id == 1).all()
     return templates.TemplateResponse("home.html", {"request": request, "todos": todos})
 
 
@@ -60,11 +60,12 @@ async def edit_todo_commit(request: Request, todo_id: int, title: str = Form(...
                            db: Session = Depends(get_db)):
 
     todo_model = db.query(models.TodosModel).filter(models.TodosModel.id == todo_id).first()
+    if todo_model is None:
+        return RedirectResponse(url="/todos", status_code=status.HTTP_302_FOUND)
 
     todo_model.title = title
     todo_model.description = description
     todo_model.priority = priority
-
     db.add(todo_model)
     db.commit()
     return RedirectResponse(url="/todos", status_code=status.HTTP_302_FOUND)
