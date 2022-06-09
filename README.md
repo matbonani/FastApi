@@ -22,4 +22,4 @@
 
  Para rodar a aplicação, você precisará:
    - Ter o <code>Python 3.8</code> instalado na sua máquina.
-   - Importar as bibliotecas e dependências com <code>pip install requirements.txt</code> na pasta do projeto.
+   - Importar as bibliotecas e dependências com <code>pip install -r requirements.txt</code> na pasta do projeto.
